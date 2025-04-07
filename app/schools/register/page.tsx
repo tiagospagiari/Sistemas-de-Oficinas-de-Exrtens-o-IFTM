@@ -20,6 +20,7 @@ import { NavBar } from "@/components/nav-bar";
 import { Eye, EyeOff } from "lucide-react";
 import { AuthCheck } from "@/components/auth-check";
 import { useAuth } from "@/contexts/auth-context";
+import { SchoolService } from "@/lib/services/schoolService";
 
 export default function RegisterSchoolPage() {
   const router = useRouter();
@@ -50,7 +51,7 @@ export default function RegisterSchoolPage() {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validações básicas
@@ -90,12 +91,25 @@ export default function RegisterSchoolPage() {
       return;
     }
 
-    // Simulação de envio do formulário
     setIsSubmitting(true);
 
-    // Aqui seria implementada a lógica para cadastrar a escola no banco de dados
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      // Preparar os dados da escola
+      const schoolData = {
+        schoolName: formData.schoolName,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode,
+        phone: formData.phone,
+        email: formData.email,
+        responsibleName: formData.responsibleName,
+        responsiblePosition: formData.responsiblePosition,
+        status: "active" as const,
+      };
+
+      // Usar o serviço para criar a escola
+      await SchoolService.createSchool(schoolData);
 
       toast({
         title: "Cadastro realizado com sucesso",
@@ -103,7 +117,16 @@ export default function RegisterSchoolPage() {
       });
 
       router.push("/schools");
-    }, 1500);
+    } catch (error) {
+      console.error("Erro ao cadastrar escola:", error);
+      toast({
+        title: "Erro no cadastro",
+        description: "Ocorreu um erro ao cadastrar a escola. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
