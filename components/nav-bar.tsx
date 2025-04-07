@@ -53,7 +53,7 @@ export function NavBar({ isAdmin = false }: NavBarProps) {
               <Image
                 src="/images/logo-iftm.png"
                 alt="Logo IFTM"
-                width={150}
+                width={60}
                 height={60}
               />
             </Link>

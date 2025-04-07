@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import type { FirebaseError } from "firebase/app";
+import Link from "next/link";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -402,6 +403,9 @@ export default function AuthPage() {
             </Card>
           </TabsContent>
         </Tabs>
+        <Button className="w-full bg-iftm-green hover:bg-iftm-darkGreen mt-3">
+          <Link href="/schools/register">Cadastrar escola</Link>
+        </Button>
       </div>
     </div>
   );
