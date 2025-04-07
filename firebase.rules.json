@@ -1,0 +1,22 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin'",
+        ".write": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+      }
+    },
+    "schools": {
+      "$schoolId": {
+        ".read": "auth != null",
+        ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'school_representative' && root.child('users').child(auth.uid).child('schoolId').val() === $schoolId)"
+      }
+    },
+    "workshopRequests": {
+      "$requestId": {
+        ".read": "auth != null",
+        ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'school_representative' && root.child('workshopRequests').child($requestId).child('schoolId').val() === root.child('users').child(auth.uid).child('schoolId').val())"
+      }
+    }
+  }
+}

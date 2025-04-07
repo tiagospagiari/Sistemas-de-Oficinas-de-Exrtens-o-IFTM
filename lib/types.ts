@@ -8,8 +8,6 @@ export interface School {
   zipCode: string;
   phone: string;
   email: string;
-  responsibleName: string;
-  responsiblePosition: string;
   createdAt: string;
   updatedAt: string;
   status: "active" | "inactive";

@@ -21,12 +21,14 @@ import { Eye, EyeOff } from "lucide-react";
 import { AuthCheck } from "@/components/auth-check";
 import { useAuth } from "@/contexts/auth-context";
 import { SchoolService } from "@/lib/services/schoolService";
+import { AuthService } from "@/lib/services/authService";
 
 export default function RegisterSchoolPage() {
   const router = useRouter();
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
+    // Dados da escola
     schoolName: "",
     address: "",
     city: "",
@@ -34,9 +36,10 @@ export default function RegisterSchoolPage() {
     zipCode: "",
     phone: "",
     email: "",
-    responsibleName: "",
-    responsiblePosition: "",
-    password: "",
+    // Dados do representante
+    representativeName: "",
+    representativeEmail: "",
+    representativePassword: "",
     confirmPassword: "",
   });
 
@@ -55,7 +58,7 @@ export default function RegisterSchoolPage() {
     e.preventDefault();
 
     // Validações básicas
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.representativePassword !== formData.confirmPassword) {
       toast({
         title: "Erro de validação",
         description: "As senhas não coincidem.",
@@ -64,7 +67,7 @@ export default function RegisterSchoolPage() {
       return;
     }
 
-    if (formData.password.length < 8) {
+    if (formData.representativePassword.length < 8) {
       toast({
         title: "Erro de validação",
         description: "A senha deve ter pelo menos 8 caracteres.",
@@ -73,7 +76,10 @@ export default function RegisterSchoolPage() {
       return;
     }
 
-    if (!formData.email || !formData.email.includes("@")) {
+    if (
+      !formData.representativeEmail ||
+      !formData.representativeEmail.includes("@")
+    ) {
       toast({
         title: "Erro de validação",
         description: "Por favor, insira um email válido.",
@@ -94,7 +100,7 @@ export default function RegisterSchoolPage() {
     setIsSubmitting(true);
 
     try {
-      // Preparar os dados da escola
+      // 1. Registrar a escola
       const schoolData = {
         schoolName: formData.schoolName,
         address: formData.address,
@@ -103,25 +109,32 @@ export default function RegisterSchoolPage() {
         zipCode: formData.zipCode,
         phone: formData.phone,
         email: formData.email,
-        responsibleName: formData.responsibleName,
-        responsiblePosition: formData.responsiblePosition,
         status: "active" as const,
       };
 
-      // Usar o serviço para criar a escola
-      await SchoolService.createSchool(schoolData);
+      const newSchool = await SchoolService.createSchool(schoolData);
+
+      // 2. Registrar o representante da escola
+      await AuthService.registerSchoolRepresentative(
+        formData.representativeEmail,
+        formData.representativePassword,
+        newSchool.id,
+        formData.representativeName
+      );
 
       toast({
         title: "Cadastro realizado com sucesso",
-        description: "A escola foi cadastrada com sucesso no sistema.",
+        description:
+          "A escola e o representante foram cadastrados com sucesso.",
       });
 
       router.push("/schools");
-    } catch (error) {
-      console.error("Erro ao cadastrar escola:", error);
+    } catch (error: any) {
+      console.error("Erro ao cadastrar:", error);
       toast({
         title: "Erro no cadastro",
-        description: "Ocorreu um erro ao cadastrar a escola. Tente novamente.",
+        description:
+          error.message || "Ocorreu um erro ao cadastrar. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -138,11 +151,11 @@ export default function RegisterSchoolPage() {
           <Card className="border-t-4 border-t-iftm-green">
             <CardHeader>
               <CardTitle className="text-iftm-gray">
-                Cadastro de Escola
+                Cadastro de Escola e Representante
               </CardTitle>
               <CardDescription>
-                Preencha o formulário abaixo para cadastrar uma nova escola no
-                sistema
+                Preencha o formulário abaixo para cadastrar uma nova escola e
+                seu representante
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -229,121 +242,100 @@ export default function RegisterSchoolPage() {
                   </div>
 
                   <h3 className="text-lg font-medium pt-4 text-iftm-green">
-                    Dados do Responsável
+                    Dados do Representante
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="responsibleName">
-                        Nome do Responsável
+                      <Label htmlFor="representativeName">
+                        Nome do Representante
                       </Label>
                       <Input
-                        id="responsibleName"
-                        value={formData.responsibleName}
+                        id="representativeName"
+                        value={formData.representativeName}
                         onChange={handleChange}
                         required
                       />
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="responsiblePosition">Cargo</Label>
+                      <Label htmlFor="representativeEmail">
+                        Email do Representante
+                      </Label>
                       <Input
-                        id="responsiblePosition"
-                        value={formData.responsiblePosition}
+                        id="representativeEmail"
+                        type="email"
+                        value={formData.representativeEmail}
                         onChange={handleChange}
                         required
                       />
                     </div>
                   </div>
 
-                  <h3 className="text-lg font-medium pt-4 text-iftm-green">
-                    Credenciais de Acesso
-                  </h3>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="password">Senha</Label>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                        <span className="sr-only">
-                          {showPassword ? "Ocultar senha" : "Mostrar senha"}
-                        </span>
-                      </Button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="representativePassword">Senha</Label>
+                      <div className="relative">
+                        <Input
+                          id="representativePassword"
+                          type={showPassword ? "text" : "password"}
+                          value={formData.representativePassword}
+                          onChange={handleChange}
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      A senha deve ter pelo menos 8 caracteres.
-                    </p>
-                  </div>
 
-                  <div className="grid gap-2">
-                    <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                    <div className="relative">
-                      <Input
-                        id="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        required
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3"
-                        onClick={() =>
-                          setShowConfirmPassword(!showConfirmPassword)
-                        }
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                        <span className="sr-only">
-                          {showConfirmPassword
-                            ? "Ocultar senha"
-                            : "Mostrar senha"}
-                        </span>
-                      </Button>
+                    <div className="grid gap-2">
+                      <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                      <div className="relative">
+                        <Input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={formData.confirmPassword}
+                          onChange={handleChange}
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                <CardFooter className="flex justify-end">
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Cadastrando..." : "Cadastrar"}
+                  </Button>
+                </CardFooter>
               </form>
             </CardContent>
-            <CardFooter>
-              <Button
-                variant="outline"
-                onClick={() => router.push("/schools")}
-                className="mr-2 border-iftm-green text-iftm-green hover:bg-iftm-lightGreen"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                onClick={handleSubmit}
-                className="bg-iftm-green hover:bg-iftm-darkGreen"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Cadastrando..." : "Cadastrar Escola"}
-              </Button>
-            </CardFooter>
           </Card>
         </div>
       </main>
