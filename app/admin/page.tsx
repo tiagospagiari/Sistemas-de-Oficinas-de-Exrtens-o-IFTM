@@ -2,33 +2,59 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { NavBar } from "@/components/nav-bar"
+import { WorkshopRequestService, WorkshopRequest } from "../../lib/services/workshopRequestService"
+import { EmailService } from "../../lib/services/emailService"
+import { useEffect, useState } from "react"
+import { toast } from "@/components/ui/use-toast"
 
 export default function AdminPage() {
-  // Dados de exemplo para demonstração
-  const pendingRequests = [
-    {
-      id: 1,
-      schoolName: "Escola Municipal João da Silva",
-      coordinator: "Maria Oliveira",
-      workshopType: "Robótica",
-      hours: 4,
-      students: 25,
-      date: "2025-04-15",
-      startTime: "14:00",
-      endTime: "18:00",
-    },
-    {
-      id: 2,
-      schoolName: "Escola Municipal Pedro Alves",
-      coordinator: "José Santos",
-      workshopType: "Programação",
-      hours: 6,
-      students: 30,
-      date: "2025-04-20",
-      startTime: "13:30",
-      endTime: "19:30",
-    },
-  ]
+  const [requests, setRequests] = useState<WorkshopRequest[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const pendingRequests = await WorkshopRequestService.getRequestsByStatus('pending')
+        setRequests(pendingRequests)
+      } catch (error) {
+        console.error('Error fetching requests:', error)
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar as solicitações",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchRequests()
+  }, [])
+
+  const handleStatusUpdate = async (requestId: string, status: 'approved' | 'rejected') => {
+    try {
+      await WorkshopRequestService.updateRequestStatus(requestId, status)
+      const updatedRequest = requests.find(request => request.id === requestId)
+      if (updatedRequest) {
+        await EmailService.sendStatusUpdateEmail({
+          ...updatedRequest,
+          status
+        })
+      }
+      setRequests(requests.filter(request => request.id !== requestId))
+      toast({
+        title: "Sucesso",
+        description: `Solicitação ${status === 'approved' ? 'aprovada' : 'rejeitada'} com sucesso`,
+      })
+    } catch (error) {
+      console.error('Error updating request status:', error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status da solicitação",
+        variant: "destructive",
+      })
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-iftm-lightGray">
@@ -41,9 +67,9 @@ export default function AdminPage() {
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4 text-iftm-gray">Solicitações Pendentes</h2>
 
-            {pendingRequests.length > 0 ? (
+            {requests.length > 0 ? (
               <div className="space-y-4">
-                {pendingRequests.map((request) => (
+                {requests.map((request) => (
                   <Card key={request.id} className="border-t-4 border-t-iftm-green">
                     <CardHeader>
                       <div className="flex justify-between items-start">
@@ -71,18 +97,18 @@ export default function AdminPage() {
                           <p className="text-sm">{request.students} alunos</p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium">Data e Horário</p>
+                          <p className="text-sm font-medium">Horário</p>
                           <p className="text-sm">
-                            {request.date} das {request.startTime} às {request.endTime}
+                            Das {request.startTime} às {request.endTime}
                           </p>
                         </div>
                       </div>
                     </CardContent>
                     <CardFooter className="flex justify-end gap-2">
-                      <Button variant="outline" className="border-iftm-red text-iftm-red hover:bg-red-50">
+                      <Button variant="outline" className="border-iftm-red text-iftm-red hover:bg-red-50" onClick={() => handleStatusUpdate(request.id, 'rejected')}>
                         Recusar
                       </Button>
-                      <Button className="bg-iftm-green hover:bg-iftm-darkGreen">Aprovar</Button>
+                      <Button className="bg-iftm-green hover:bg-iftm-darkGreen" onClick={() => handleStatusUpdate(request.id, 'approved')}>Aprovar</Button>
                     </CardFooter>
                   </Card>
                 ))}

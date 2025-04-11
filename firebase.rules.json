@@ -15,7 +15,7 @@
     "workshopRequests": {
       "$requestId": {
         ".read": "auth != null",
-        ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'school_representative' && root.child('workshopRequests').child($requestId).child('schoolId').val() === root.child('users').child(auth.uid).child('schoolId').val())"
+        ".write": "auth != null"
       }
     }
   }

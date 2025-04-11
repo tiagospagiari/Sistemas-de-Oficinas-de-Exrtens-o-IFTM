@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,23 +11,70 @@ import { Textarea } from "@/components/ui/textarea"
 import { NavBar } from "@/components/nav-bar"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { WorkshopRequestService } from "@/lib/services/workshopRequestService"
+
+interface FormData {
+  schoolName: string
+  coordinator: string
+  hours: string
+  students: string
+  workshopType: string
+  otherDescription: string
+  materials: string
+  startTime: string
+  endTime: string
+  status: 'pending'
+}
 
 export default function RequestForm() {
   const router = useRouter()
   const { toast } = useToast()
-  const [workshopType, setWorkshopType] = useState<string>("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState<FormData>({
+    schoolName: "",
+    coordinator: "",
+    hours: "",
+    students: "",
+    workshopType: "",
+    otherDescription: "",
+    materials: "",
+    startTime: "",
+    endTime: "",
+    status: "pending"
+  })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target
+    setFormData(prev => ({ ...prev, [id]: value }))
+  }
+
+  const handleSelectChange = (value: string) => {
+    setFormData(prev => ({ ...prev, workshopType: value }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Aqui seria implementada a lógica para enviar o formulário
-    // Incluindo o envio de email para a coordenação
+    setIsSubmitting(true)
 
-    toast({
-      title: "Solicitação enviada",
-      description: "Sua solicitação foi enviada com sucesso e está aguardando aprovação.",
-    })
+    try {
+      await WorkshopRequestService.createRequest(formData)
 
-    router.push("/dashboard")
+      toast({
+        title: "Solicitação enviada",
+        description: "Sua solicitação foi enviada com sucesso e está aguardando aprovação.",
+      })
+
+      router.push("/dashboard")
+    } catch (error) {
+      console.error('Erro ao enviar solicitação:', error)
+      toast({
+        title: "Erro ao enviar solicitação",
+        description: "Ocorreu um erro ao enviar sua solicitação. Por favor, tente novamente.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -49,29 +95,57 @@ export default function RequestForm() {
                 <div className="grid gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="schoolName">Nome da Escola</Label>
-                    <Input id="schoolName" required />
+                    <Input 
+                      id="schoolName" 
+                      value={formData.schoolName}
+                      onChange={handleInputChange}
+                      required 
+                    />
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="coordinator">Coordenador Responsável</Label>
-                    <Input id="coordinator" required />
+                    <Input 
+                      id="coordinator" 
+                      value={formData.coordinator}
+                      onChange={handleInputChange}
+                      required 
+                    />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="grid gap-2">
                       <Label htmlFor="hours">Quantidade de Horas Desejadas</Label>
-                      <Input id="hours" type="number" min="1" required />
+                      <Input 
+                        id="hours" 
+                        type="number" 
+                        min="1" 
+                        value={formData.hours}
+                        onChange={handleInputChange}
+                        required 
+                      />
                     </div>
 
                     <div className="grid gap-2">
                       <Label htmlFor="students">Quantidade de Alunos Prevista</Label>
-                      <Input id="students" type="number" min="1" required />
+                      <Input 
+                        id="students" 
+                        type="number" 
+                        min="1" 
+                        value={formData.students}
+                        onChange={handleInputChange}
+                        required 
+                      />
                     </div>
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="workshopType">Tipo de Oficina Desejada</Label>
-                    <Select onValueChange={(value) => setWorkshopType(value)} required>
+                    <Select 
+                      value={formData.workshopType} 
+                      onValueChange={handleSelectChange} 
+                      required
+                    >
                       <SelectTrigger id="workshopType" className="border-iftm-green/50 focus:ring-iftm-green">
                         <SelectValue placeholder="Selecione o tipo de oficina" />
                       </SelectTrigger>
@@ -85,11 +159,13 @@ export default function RequestForm() {
                     </Select>
                   </div>
 
-                  {workshopType === "other" && (
+                  {formData.workshopType === "other" && (
                     <div className="grid gap-2">
                       <Label htmlFor="otherDescription">Descrição da Oficina</Label>
                       <Textarea
                         id="otherDescription"
+                        value={formData.otherDescription}
+                        onChange={handleInputChange}
                         placeholder="Descreva o tipo de oficina desejada"
                         required
                         className="border-iftm-green/50 focus-visible:ring-iftm-green"
@@ -101,6 +177,8 @@ export default function RequestForm() {
                     <Label htmlFor="materials">Materiais Disponíveis na Escola</Label>
                     <Textarea
                       id="materials"
+                      value={formData.materials}
+                      onChange={handleInputChange}
                       placeholder="Liste os materiais disponíveis para a oficina"
                       required
                       className="border-iftm-green/50 focus-visible:ring-iftm-green"
@@ -117,6 +195,8 @@ export default function RequestForm() {
                         <Input
                           id="startTime"
                           type="time"
+                          value={formData.startTime}
+                          onChange={handleInputChange}
                           required
                           className="border-iftm-green/50 focus-visible:ring-iftm-green"
                         />
@@ -128,6 +208,8 @@ export default function RequestForm() {
                         <Input
                           id="endTime"
                           type="time"
+                          value={formData.endTime}
+                          onChange={handleInputChange}
                           required
                           className="border-iftm-green/50 focus-visible:ring-iftm-green"
                         />
@@ -145,8 +227,13 @@ export default function RequestForm() {
               >
                 Cancelar
               </Button>
-              <Button type="submit" onClick={handleSubmit} className="bg-iftm-green hover:bg-iftm-darkGreen">
-                Enviar Solicitação
+              <Button 
+                type="submit" 
+                onClick={handleSubmit} 
+                className="bg-iftm-green hover:bg-iftm-darkGreen"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Enviando..." : "Enviar Solicitação"}
               </Button>
             </CardFooter>
           </Card>
