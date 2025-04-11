@@ -1,3 +1,5 @@
+"use client"
+
 import { WorkshopRequest } from './workshopRequestService';
 
 export class EmailService {
