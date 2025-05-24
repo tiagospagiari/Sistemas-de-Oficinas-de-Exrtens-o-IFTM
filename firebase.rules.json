@@ -17,7 +17,8 @@
     },
     "workshopRequests": {
       ".read": "auth != null",
-      ".write": "auth != null",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'school_representative'",
+      ".indexOn": ["schoolId", "status"],
       "$requestId": {
         ".read": "auth != null && (root.child('users').child(auth.uid).child('email').val() === 'extensao@iftm.com' || root.child('workshopRequests').child($requestId).child('schoolId').val() === root.child('users').child(auth.uid).child('schoolId').val())",
         ".write": "auth != null && (root.child('users').child(auth.uid).child('email').val() === 'extensao@iftm.com' || (root.child('users').child(auth.uid).child('role').val() === 'school_representative' && root.child('workshopRequests').child($requestId).child('schoolId').val() === root.child('users').child(auth.uid).child('schoolId').val()))",

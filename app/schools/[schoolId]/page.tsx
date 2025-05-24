@@ -36,8 +36,20 @@ export default function SchoolsPage() {
   useEffect(() => {
     const loadSchools = async () => {
       try {
-        const activeSchools = await SchoolService.getSchoolsByStatus("active");
-        setSchools(activeSchools);
+        if (userData?.role === "admin") {
+          const activeSchools = await SchoolService.getSchoolsByStatus(
+            "active"
+          );
+          setSchools(activeSchools);
+        } else if (
+          userData?.role === "school_representative" &&
+          userData.schoolId
+        ) {
+          const school = await SchoolService.getSchoolById(userData.schoolId);
+          if (school) {
+            setSchools([school]);
+          }
+        }
       } catch (error) {
         console.error("Erro ao carregar escolas:", error);
         toast({
@@ -52,26 +64,36 @@ export default function SchoolsPage() {
     };
 
     loadSchools();
-  }, [toast]);
+  }, [toast, userData]);
 
   const handleEditClick = (school: School) => {
     setSelectedSchool(school);
     setIsEditModalOpen(true);
   };
 
-  const handleDetailsClick = (school: School) => {
-    setSelectedSchool(school);
-    setIsDetailsModalOpen(true);
-  };
-
   const handleEditSuccess = async () => {
     // Recarregar a lista de escolas após a edição
     try {
-      const activeSchools = await SchoolService.getSchoolsByStatus("active");
-      setSchools(activeSchools);
+      if (userData?.role === "admin") {
+        const activeSchools = await SchoolService.getSchoolsByStatus("active");
+        setSchools(activeSchools);
+      } else if (
+        userData?.role === "school_representative" &&
+        userData.schoolId
+      ) {
+        const school = await SchoolService.getSchoolById(userData.schoolId);
+        if (school) {
+          setSchools([school]);
+        }
+      }
     } catch (error) {
       console.error("Erro ao recarregar escolas:", error);
     }
+  };
+
+  const handleDetailsClick = (school: School) => {
+    setSelectedSchool(school);
+    setIsDetailsModalOpen(true);
   };
 
   const filteredSchools = schools.filter(
@@ -80,6 +102,13 @@ export default function SchoolsPage() {
       school.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
       school.state.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Se não for admin nem representante, redireciona para dashboard
+  useEffect(() => {
+    if (!isLoading && !userData?.role) {
+      router.push("/dashboard");
+    }
+  }, [isLoading, userData, router]);
 
   return (
     <AuthCheck>
@@ -90,28 +119,32 @@ export default function SchoolsPage() {
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <h1 className="text-2xl font-bold text-iftm-gray">
-                Escolas Cadastradas
+                {userData?.role === "admin"
+                  ? "Escolas Cadastradas"
+                  : "Minha Escola"}
               </h1>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Buscar escolas..."
-                    className="pl-8 bg-white w-full sm:w-[250px]"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
+              {userData?.role === "admin" && (
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="Buscar escolas..."
+                      className="pl-8 bg-white w-full sm:w-[250px]"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
 
-                <Link href="/schools/register">
-                  <Button className="bg-iftm-green hover:bg-iftm-darkGreen w-full sm:w-auto">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Cadastrar Nova Escola
-                  </Button>
-                </Link>
-              </div>
+                  <Link href="/schools/register">
+                    <Button className="bg-iftm-green hover:bg-iftm-darkGreen w-full sm:w-auto">
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Cadastrar Nova Escola
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
 
             {isLoading ? (
@@ -181,14 +214,16 @@ export default function SchoolsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-center">
-                  <Link href="/schools/register">
-                    <Button className="bg-iftm-green hover:bg-iftm-darkGreen">
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      {searchTerm
-                        ? "Limpar busca"
-                        : "Cadastrar Primeira Escola"}
-                    </Button>
-                  </Link>
+                  {userData?.role === "admin" && (
+                    <Link href="/schools/register">
+                      <Button className="bg-iftm-green hover:bg-iftm-darkGreen">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        {searchTerm
+                          ? "Limpar busca"
+                          : "Cadastrar Primeira Escola"}
+                      </Button>
+                    </Link>
+                  )}
                 </CardContent>
               </Card>
             )}

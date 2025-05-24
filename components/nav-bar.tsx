@@ -36,7 +36,7 @@ export function NavBar({ isAdmin = false }: NavBarProps) {
 
   // Obter as iniciais do email do usuário para o avatar
   const getUserInitials = () => {
-    if (!userData?.email) return isAdmin ? "AD" : "US";
+    if (!userData?.email) return userData?.role === "admin" ? "AD" : "US";
 
     const emailParts = userData.email.split("@")[0].split(".");
     if (emailParts.length >= 2) {
@@ -50,7 +50,9 @@ export function NavBar({ isAdmin = false }: NavBarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link href={isAdmin ? "/admin" : "/dashboard"}>
+            <Link
+              href={userData?.role === "admin" ? "/dashboard" : "/dashboard"}
+            >
               <Image
                 src="/images/logo-iftm.png"
                 alt="Logo IFTM"
@@ -60,16 +62,16 @@ export function NavBar({ isAdmin = false }: NavBarProps) {
             </Link>
 
             <nav className="ml-10 flex items-center space-x-4">
-              {isAdmin ? (
+              {userData?.role === "admin" ? (
                 <>
                   <Link
-                    href="/admin"
+                    href="/solicitacoes"
                     className="text-iftm-gray hover:text-iftm-green px-3 py-2 rounded-md text-sm font-medium"
                   >
                     Solicitações
                   </Link>
                   <Link
-                    href="/admin/reports"
+                    href="/solicitacoes/reports"
                     className="text-iftm-gray hover:text-iftm-green px-3 py-2 rounded-md text-sm font-medium"
                   >
                     Relatórios
@@ -96,10 +98,10 @@ export function NavBar({ isAdmin = false }: NavBarProps) {
                     Nova Solicitação
                   </Link>
                   <Link
-                    href="/schools"
+                    href={`/schools/${userData?.schoolId}`}
                     className="text-iftm-gray hover:text-iftm-green px-3 py-2 rounded-md text-sm font-medium"
                   >
-                    Escolas
+                    Minha Escola
                   </Link>
                 </>
               )}

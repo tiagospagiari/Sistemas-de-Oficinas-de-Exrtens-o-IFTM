@@ -10,6 +10,7 @@ import {
 } from "firebase/database";
 import { db } from "../firebase/config";
 import { School } from "../types";
+import { AuthService } from "./authService";
 
 export class SchoolService {
   // Criar uma nova escola
@@ -77,14 +78,34 @@ export class SchoolService {
   // Atualizar escola
   static async updateSchool(
     schoolId: string,
-    schoolData: Partial<School>
+    schoolData: Partial<School>,
+    userId: string
   ): Promise<void> {
+    // Verificar permissões
+    const userData = await AuthService.getUserData(userId);
+    if (!userData) {
+      throw new Error("Usuário não encontrado");
+    }
+
+    const isAdmin = userData.email === "extensao@iftm.com";
+    const isSchoolRepresentative =
+      userData.role === "school_representative" &&
+      userData.schoolId === schoolId;
+
+    if (!isAdmin && !isSchoolRepresentative) {
+      throw new Error("Você não tem permissão para editar esta escola");
+    }
+
     const updates = {
       ...schoolData,
       updatedAt: new Date().toISOString(),
     };
 
-    await update(ref(db, `schools/${schoolId}`), updates);
+    // Usar set com merge para atualizar apenas os campos fornecidos
+    await set(ref(db, `schools/${schoolId}`), {
+      ...(await this.getSchoolById(schoolId)),
+      ...updates,
+    });
   }
 
   // Deletar escola
