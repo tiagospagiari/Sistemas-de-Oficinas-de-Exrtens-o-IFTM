@@ -57,14 +57,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await signOut(auth);
-    router.push("/");
+    try {
+      await signOut(auth);
+      // Limpar o estado do usuário imediatamente
+      setUser(null);
+      router.push("/");
 
-    // Adicionar toast de logout
-    toast({
-      title: "Logout realizado",
-      description: "Você saiu do sistema com sucesso.",
-    });
+      // Adicionar toast de logout
+      toast({
+        title: "Logout realizado",
+        description: "Você saiu do sistema com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+      toast({
+        title: "Erro ao sair",
+        description: "Ocorreu um erro ao tentar sair do sistema.",
+        variant: "destructive",
+      });
+    }
   };
 
   const value = {

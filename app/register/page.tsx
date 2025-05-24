@@ -82,7 +82,14 @@ export default function RegisterPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-iftm-lightGray p-4">
       <div className="w-full max-w-2xl">
         <div className="flex justify-center mb-6">
-          <Image src="/images/logo-iftm.png" alt="Logo IFTM" width={300} height={150} className="mb-4" />
+          <Image 
+            src="/images/logo-iftm.png" 
+            alt="Logo IFTM" 
+            width={300} 
+            height={150} 
+            priority
+            className="mb-4 w-auto h-auto" 
+          />
         </div>
 
         <Card className="border-iftm-green border-t-4">

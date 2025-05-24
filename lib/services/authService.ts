@@ -5,7 +5,7 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
 } from "firebase/auth";
-import { ref, set, get, query, orderByChild, equalTo } from "firebase/database";
+import { ref, set, get, query, orderByChild, equalTo, DataSnapshot } from "firebase/database";
 import { auth, db } from "../firebase/config";
 
 export type UserRole = "admin" | "school_representative";
@@ -16,6 +16,7 @@ export interface UserData {
   role: UserRole;
   schoolId?: string; // ID da escola que o representante representa
   displayName: string;
+  phone?: string; // Telefone do representante
   createdAt: string;
   updatedAt: string;
 }
@@ -50,42 +51,12 @@ export class AuthService {
         role: "school_representative",
         schoolId,
         displayName,
+        phone: "",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
 
       // Salvar dados do usuário no Realtime Database
-      await set(ref(db, `users/${user.uid}`), userData);
-
-      return userData;
-    } catch (error: any) {
-      throw new Error(error.message);
-    }
-  }
-
-  // Criar usuário admin
-  static async registerAdmin(
-    email: string,
-    password: string,
-    displayName: string
-  ): Promise<UserData> {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-
-      const userData: UserData = {
-        uid: user.uid,
-        email: user.email!,
-        role: "admin",
-        displayName,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
       await set(ref(db, `users/${user.uid}`), userData);
 
       return userData;
@@ -126,8 +97,8 @@ export class AuthService {
   // Obter dados do usuário
   static async getUserData(uid: string): Promise<UserData | null> {
     try {
-      const snapshot = await get(ref(db, `users/${uid}`));
-      return snapshot.exists() ? snapshot.val() : null;
+      const snapshot: DataSnapshot = await get(ref(db, `users/${uid}`));
+      return snapshot.exists() ? (snapshot.val() as UserData) : null;
     } catch (error: any) {
       throw new Error(error.message);
     }

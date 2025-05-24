@@ -2,20 +2,28 @@
   "rules": {
     "users": {
       "$uid": {
-        ".read": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin'",
-        ".write": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        ".read": "$uid === auth.uid || root.child('users').child(auth.uid).child('email').val() === 'extensao@iftm.com'",
+        ".write": "$uid === auth.uid || root.child('users').child(auth.uid).child('email').val() === 'extensao@iftm.com'"
       }
     },
     "schools": {
+      ".read": true,
+      ".write": "root.child('users').child(auth.uid).child('email').val() === 'extensao@iftm.com'",
+      ".indexOn": ["status"],
       "$schoolId": {
-        ".read": "auth != null",
-        ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('role').val() === 'school_representative' && root.child('users').child(auth.uid).child('schoolId').val() === $schoolId)"
+        ".read": true,
+        ".write": "root.child('users').child(auth.uid).child('email').val() === 'extensao@iftm.com' || (root.child('users').child(auth.uid).child('role').val() === 'school_representative' && root.child('users').child(auth.uid).child('schoolId').val() === $schoolId)"
       }
     },
     "workshopRequests": {
+      ".read": "auth != null",
+      ".write": "auth != null",
       "$requestId": {
-        ".read": "auth != null",
-        ".write": "auth != null"
+        ".read": "auth != null && (root.child('users').child(auth.uid).child('email').val() === 'extensao@iftm.com' || root.child('workshopRequests').child($requestId).child('schoolId').val() === root.child('users').child(auth.uid).child('schoolId').val())",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('email').val() === 'extensao@iftm.com' || (root.child('users').child(auth.uid).child('role').val() === 'school_representative' && root.child('workshopRequests').child($requestId).child('schoolId').val() === root.child('users').child(auth.uid).child('schoolId').val()))",
+        "status": {
+          ".write": "root.child('users').child(auth.uid).child('email').val() === 'extensao@iftm.com'"
+        }
       }
     }
   }

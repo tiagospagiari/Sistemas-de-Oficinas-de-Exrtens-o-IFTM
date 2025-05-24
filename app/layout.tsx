@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "Sistema de Oficinas IFTM",
   description: "Sistema de solicitação e gerenciamento de oficinas do IFTM",
   generator: "v0.dev",
+  icons: {
+    icon: [
+      { url: '/images/logo-iftm.png', type: 'image/png' }
+    ]
+  },
 };
 
 export default function RootLayout({

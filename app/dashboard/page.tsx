@@ -12,8 +12,61 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NavBar } from "@/components/nav-bar";
 import Link from "next/link";
 import { AuthCheck } from "@/components/auth-check";
+import { useAuth } from "@/contexts/auth-context";
+import { useEffect, useState, ReactNode } from "react";
+import { WorkshopRequestService, WorkshopRequest } from "@/lib/services/workshopRequestService";
+import { AuthService } from "@/lib/services/authService";
+
+interface AuthCheckProps {
+  children: ReactNode;
+}
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const [pendingRequests, setPendingRequests] = useState<WorkshopRequest[]>([]);
+  const [approvedRequests, setApprovedRequests] = useState<WorkshopRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadRequests = async () => {
+      if (!user) return;
+
+      try {
+        const userData = await AuthService.getUserData(user.uid);
+        if (userData?.schoolId) {
+          const schoolRequests = await WorkshopRequestService.getRequestsBySchool(userData.schoolId);
+          setPendingRequests(schoolRequests.filter(r => r.status === 'pending'));
+          setApprovedRequests(schoolRequests.filter(r => r.status === 'approved'));
+        }
+      } catch (error) {
+        console.error('Erro ao carregar solicitações:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadRequests();
+  }, [user]);
+
+  if (isLoading) {
+    return (
+      <AuthCheck>
+        <div className="min-h-screen flex flex-col bg-iftm-lightGray">
+          <NavBar />
+          <main className="flex-1 p-4 md:p-6">
+            <div className="max-w-6xl mx-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Carregando...</CardTitle>
+                </CardHeader>
+              </Card>
+            </div>
+          </main>
+        </div>
+      </AuthCheck>
+    );
+  }
+
   return (
     <AuthCheck>
       <div className="min-h-screen flex flex-col bg-iftm-lightGray">
@@ -48,38 +101,76 @@ export default function Dashboard() {
               </TabsList>
 
               <TabsContent value="pending" className="space-y-4">
-                <Card className="border-t-4 border-t-iftm-green">
-                  <CardHeader>
-                    <CardTitle className="text-iftm-gray">
-                      Nenhuma solicitação pendente
-                    </CardTitle>
-                    <CardDescription>
-                      Você não possui solicitações de oficinas pendentes no
-                      momento.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Link href="/request">
-                      <Button className="bg-iftm-green hover:bg-iftm-darkGreen">
-                        Nova Solicitação
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
+                {pendingRequests.length > 0 ? (
+                  pendingRequests.map((request: WorkshopRequest) => (
+                    <Card key={request.id} className="border-t-4 border-t-iftm-green">
+                      <CardHeader>
+                        <CardTitle className="text-iftm-gray">
+                          {request.workshopType === 'other' ? request.otherDescription : request.workshopType}
+                        </CardTitle>
+                        <CardDescription>
+                          {request.hours} horas • {request.students} alunos
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">
+                          Das {request.startTime} às {request.endTime}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <Card className="border-t-4 border-t-iftm-green">
+                    <CardHeader>
+                      <CardTitle className="text-iftm-gray">
+                        Nenhuma solicitação pendente
+                      </CardTitle>
+                      <CardDescription>
+                        Você não possui solicitações de oficinas pendentes no momento.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Link href="/request">
+                        <Button className="bg-iftm-green hover:bg-iftm-darkGreen">
+                          Nova Solicitação
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="approved" className="space-y-4">
-                <Card className="border-t-4 border-t-iftm-green">
-                  <CardHeader>
-                    <CardTitle className="text-iftm-gray">
-                      Nenhuma solicitação aprovada
-                    </CardTitle>
-                    <CardDescription>
-                      Você não possui solicitações de oficinas aprovadas no
-                      momento.
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
+                {approvedRequests.length > 0 ? (
+                  approvedRequests.map((request: WorkshopRequest) => (
+                    <Card key={request.id} className="border-t-4 border-t-iftm-green">
+                      <CardHeader>
+                        <CardTitle className="text-iftm-gray">
+                          {request.workshopType === 'other' ? request.otherDescription : request.workshopType}
+                        </CardTitle>
+                        <CardDescription>
+                          {request.hours} horas • {request.students} alunos
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">
+                          Das {request.startTime} às {request.endTime}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <Card className="border-t-4 border-t-iftm-green">
+                    <CardHeader>
+                      <CardTitle className="text-iftm-gray">
+                        Nenhuma solicitação aprovada
+                      </CardTitle>
+                      <CardDescription>
+                        Você não possui solicitações de oficinas aprovadas no momento.
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="completed" className="space-y-4">
@@ -89,8 +180,7 @@ export default function Dashboard() {
                       Nenhuma oficina realizada
                     </CardTitle>
                     <CardDescription>
-                      Você não possui oficinas realizadas que necessitem de
-                      avaliação.
+                      Você não possui oficinas realizadas que necessitem de avaliação.
                     </CardDescription>
                   </CardHeader>
                 </Card>
