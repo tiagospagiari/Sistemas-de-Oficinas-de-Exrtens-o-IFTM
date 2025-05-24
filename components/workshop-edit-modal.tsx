@@ -68,7 +68,7 @@ export function WorkshopEditModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Editar Solicitação</DialogTitle>
           <DialogDescription>
@@ -77,73 +77,80 @@ export function WorkshopEditModal({
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="coordinator" className="text-right">
-                Coordenador
-              </Label>
+            <div className="grid gap-2">
+              <Label htmlFor="coordinator">Coordenador Responsável</Label>
               <Input
                 id="coordinator"
                 value={formData.coordinator}
                 onChange={(e) =>
                   setFormData({ ...formData, coordinator: e.target.value })
                 }
-                className="col-span-3"
+                required
+                className="border-iftm-green/50 focus:ring-iftm-green"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="hours" className="text-right">
-                Horas
-              </Label>
-              <Input
-                id="hours"
-                type="number"
-                value={formData.hours}
-                onChange={(e) =>
-                  setFormData({ ...formData, hours: e.target.value })
-                }
-                className="col-span-3"
-              />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="hours">Quantidade de Horas Desejadas</Label>
+                <Input
+                  id="hours"
+                  type="number"
+                  min="1"
+                  value={formData.hours}
+                  onChange={(e) =>
+                    setFormData({ ...formData, hours: e.target.value })
+                  }
+                  required
+                  className="border-iftm-green/50 focus:ring-iftm-green"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="students">Quantidade de Alunos Prevista</Label>
+                <Input
+                  id="students"
+                  type="number"
+                  min="1"
+                  value={formData.students}
+                  onChange={(e) =>
+                    setFormData({ ...formData, students: e.target.value })
+                  }
+                  required
+                  className="border-iftm-green/50 focus:ring-iftm-green"
+                />
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="students" className="text-right">
-                Alunos
-              </Label>
-              <Input
-                id="students"
-                type="number"
-                value={formData.students}
-                onChange={(e) =>
-                  setFormData({ ...formData, students: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="workshopType" className="text-right">
-                Tipo
-              </Label>
+
+            <div className="grid gap-2">
+              <Label htmlFor="workshopType">Tipo de Oficina Desejada</Label>
               <Select
                 value={formData.workshopType}
                 onValueChange={(value) =>
                   setFormData({ ...formData, workshopType: value })
                 }
+                required
               >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecione o tipo" />
+                <SelectTrigger
+                  id="workshopType"
+                  className="border-iftm-green/50 focus:ring-iftm-green"
+                >
+                  <SelectValue placeholder="Selecione o tipo de oficina" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="workshop">Oficina</SelectItem>
-                  <SelectItem value="lecture">Palestra</SelectItem>
-                  <SelectItem value="other">Outro</SelectItem>
+                  <SelectItem value="robotics">Robótica</SelectItem>
+                  <SelectItem value="programming">Programação</SelectItem>
+                  <SelectItem value="electronics">Eletrônica</SelectItem>
+                  <SelectItem value="ai">IA</SelectItem>
+                  <SelectItem value="other">Outras</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
             {formData.workshopType === "other" && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="otherDescription" className="text-right">
-                  Descrição
-                </Label>
-                <Input
+              <div className="grid gap-2">
+                <Label htmlFor="otherDescription">Descrição da Oficina</Label>
+                <Textarea
                   id="otherDescription"
                   value={formData.otherDescription}
                   onChange={(e) =>
@@ -152,56 +159,73 @@ export function WorkshopEditModal({
                       otherDescription: e.target.value,
                     })
                   }
-                  className="col-span-3"
+                  placeholder="Descreva o tipo de oficina desejada"
+                  required
+                  className="border-iftm-green/50 focus-visible:ring-iftm-green"
                 />
               </div>
             )}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="materials" className="text-right">
-                Materiais
-              </Label>
+
+            <div className="grid gap-2">
+              <Label htmlFor="materials">Materiais Disponíveis na Escola</Label>
               <Textarea
                 id="materials"
                 value={formData.materials}
                 onChange={(e) =>
                   setFormData({ ...formData, materials: e.target.value })
                 }
-                className="col-span-3"
+                placeholder="Liste os materiais disponíveis para a oficina"
+                required
+                className="border-iftm-green/50 focus-visible:ring-iftm-green"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="startTime" className="text-right">
-                Início
-              </Label>
-              <Input
-                id="startTime"
-                type="time"
-                value={formData.startTime}
-                onChange={(e) =>
-                  setFormData({ ...formData, startTime: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="endTime" className="text-right">
-                Fim
-              </Label>
-              <Input
-                id="endTime"
-                type="time"
-                value={formData.endTime}
-                onChange={(e) =>
-                  setFormData({ ...formData, endTime: e.target.value })
-                }
-                className="col-span-3"
-              />
+
+            <div className="grid gap-2">
+              <Label>Horário Disponível para a Oficina</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label
+                    htmlFor="startTime"
+                    className="text-sm text-muted-foreground"
+                  >
+                    Início
+                  </Label>
+                  <Input
+                    id="startTime"
+                    type="time"
+                    value={formData.startTime}
+                    onChange={(e) =>
+                      setFormData({ ...formData, startTime: e.target.value })
+                    }
+                    required
+                    className="border-iftm-green/50 focus-visible:ring-iftm-green"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label
+                    htmlFor="endTime"
+                    className="text-sm text-muted-foreground"
+                  >
+                    Fim
+                  </Label>
+                  <Input
+                    id="endTime"
+                    type="time"
+                    value={formData.endTime}
+                    onChange={(e) =>
+                      setFormData({ ...formData, endTime: e.target.value })
+                    }
+                    required
+                    className="border-iftm-green/50 focus-visible:ring-iftm-green"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <DialogFooter>
             <Button
               type="submit"
-              className="bg-iftm-green hover:bg-iftm-darkGreen"
+              className="w-full bg-iftm-green hover:bg-iftm-darkGreen"
             >
               Salvar alterações
             </Button>
