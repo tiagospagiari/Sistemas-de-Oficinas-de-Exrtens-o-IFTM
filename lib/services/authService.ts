@@ -5,7 +5,15 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
 } from "firebase/auth";
-import { ref, set, get, query, orderByChild, equalTo, DataSnapshot } from "firebase/database";
+import {
+  ref,
+  set,
+  get,
+  query,
+  orderByChild,
+  equalTo,
+  DataSnapshot,
+} from "firebase/database";
 import { auth, db } from "../firebase/config";
 
 export type UserRole = "admin" | "school_representative";

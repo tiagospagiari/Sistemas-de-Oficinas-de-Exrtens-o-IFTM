@@ -7,6 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import Image from "next/image";
@@ -18,7 +19,7 @@ interface NavBarProps {
 }
 
 export function NavBar({ isAdmin = false }: NavBarProps) {
-  const { logout, user } = useAuth();
+  const { logout, userData } = useAuth();
   const { toast } = useToast();
 
   const handleLogout = async () => {
@@ -35,13 +36,13 @@ export function NavBar({ isAdmin = false }: NavBarProps) {
 
   // Obter as iniciais do email do usuário para o avatar
   const getUserInitials = () => {
-    if (!user?.email) return isAdmin ? "AD" : "US";
+    if (!userData?.email) return isAdmin ? "AD" : "US";
 
-    const emailParts = user.email.split("@")[0].split(".");
+    const emailParts = userData.email.split("@")[0].split(".");
     if (emailParts.length >= 2) {
       return (emailParts[0][0] + emailParts[1][0]).toUpperCase();
     }
-    return user.email.substring(0, 2).toUpperCase();
+    return userData.email.substring(0, 2).toUpperCase();
   };
 
   return (
@@ -114,7 +115,7 @@ export function NavBar({ isAdmin = false }: NavBarProps) {
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src="/placeholder.svg?height=32&width=32"
+                      src="https://github.com/shadcn.png"
                       alt="Avatar"
                     />
                     <AvatarFallback className="bg-iftm-green text-white">
@@ -123,16 +124,42 @@ export function NavBar({ isAdmin = false }: NavBarProps) {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  className="text-sm text-muted-foreground"
-                  disabled
-                >
-                  {user?.email}
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="flex flex-col gap-1 p-2">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {userData?.displayName
+                        ? userData?.displayName
+                        : "Representante"}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {userData?.email}
+                    </p>
+                  </div>
+                  <div className="mt-2">
+                    <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-iftm-green/20 text-iftm-green">
+                      {userData?.role === "admin"
+                        ? "Administrador"
+                        : userData?.role === "school_representative"
+                        ? "Representante Escolar"
+                        : "Usuário"}
+                    </span>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer">
+                  <span>Perfil</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>Perfil</DropdownMenuItem>
-                <DropdownMenuItem>Configurações</DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>Sair</DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  <span>Configurações</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                  onClick={handleLogout}
+                >
+                  <span>Sair</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

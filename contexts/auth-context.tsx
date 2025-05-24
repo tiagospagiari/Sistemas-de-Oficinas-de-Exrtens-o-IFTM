@@ -4,18 +4,21 @@ import type React from "react";
 
 import { createContext, useContext, useEffect, useState } from "react";
 import {
-  type User,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  User as FirebaseUser,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { User } from "@/lib/types";
+import { AuthService } from "@/lib/services/authService";
 
 interface AuthContextType {
-  user: User | null;
+  user: FirebaseUser | null;
+  userData: User | null;
   loading: boolean;
   signUp: (email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
@@ -24,6 +27,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  userData: null,
   loading: true,
   signUp: async () => {},
   signIn: async () => {},
@@ -33,14 +37,21 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [userData, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+      if (user) {
+        const data = await AuthService.getUserData(user.uid);
+        setUserData(data);
+      } else {
+        setUserData(null);
+      }
       setLoading(false);
     });
 
@@ -59,11 +70,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await signOut(auth);
-      // Limpar o estado do usuário imediatamente
       setUser(null);
+      setUserData(null);
       router.push("/");
 
-      // Adicionar toast de logout
       toast({
         title: "Logout realizado",
         description: "Você saiu do sistema com sucesso.",
@@ -80,6 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     user,
+    userData,
     loading,
     signUp,
     signIn,

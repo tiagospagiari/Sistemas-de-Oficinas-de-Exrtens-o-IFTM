@@ -57,6 +57,17 @@ export interface Admin {
   lastLogin: string;
 }
 
+export interface User {
+  uid: string;
+  email: string;
+  role: "admin" | "school_representative" | "";
+  schoolId?: string;
+  displayName: string;
+  phone?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Database Paths
 export const DB_PATHS = {
   SCHOOLS: "schools",
