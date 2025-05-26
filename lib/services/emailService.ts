@@ -48,6 +48,19 @@ export class EmailService {
             <p><strong>Horas:</strong> ${request.hours}</p>
             <p><strong>Número de Alunos:</strong> ${request.students}</p>
             <p><strong>Tipo de Oficina:</strong> ${request.workshopType}</p>
+            <p><strong>Nível de Ensino:</strong> ${request.educationLevel.map(level => 
+              level === 'fundamental' ? 'Ensino Fundamental' :
+              level === 'medio' ? 'Ensino Médio' :
+              'Ensino Superior'
+            ).join(', ')}</p>
+            <p><strong>Dias Disponíveis:</strong> ${request.availableDays.map(day => 
+              day === 'segunda' ? 'Segunda' :
+              day === 'terca' ? 'Terça' :
+              day === 'quarta' ? 'Quarta' :
+              day === 'quinta' ? 'Quinta' :
+              'Sexta'
+            ).join(', ')}</p>
+            ${request.workshopDescription ? `<p><strong>Descrição da Oficina:</strong> ${request.workshopDescription}</p>` : ''}
             <p><strong>Descrição Adicional:</strong> ${request.otherDescription || 'Não informada'}</p>
             <p><strong>Materiais Necessários:</strong> ${request.materials || 'Não informados'}</p>
             <p><strong>Horário:</strong> Das ${request.startTime} às ${request.endTime}</p>

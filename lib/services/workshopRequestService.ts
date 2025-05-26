@@ -21,13 +21,16 @@ export interface WorkshopRequest {
   hours: string;
   students: string;
   workshopType: string;
-  otherDescription: string;
-  materials: string;
+  otherDescription?: string;
+  materials?: string;
   startTime: string;
   endTime: string;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
   updatedAt: string;
+  educationLevel: string[];
+  availableDays: string[];
+  workshopDescription?: string;
 }
 
 export class WorkshopRequestService {

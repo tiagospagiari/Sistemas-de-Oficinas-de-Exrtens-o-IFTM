@@ -43,6 +43,9 @@ interface FormData {
   startTime: string;
   endTime: string;
   status: "pending" | "approved" | "rejected";
+  educationLevel: string[];
+  availableDays: string[];
+  workshopDescription: string;
 }
 
 export default function RequestForm() {
@@ -62,6 +65,9 @@ export default function RequestForm() {
     startTime: "",
     endTime: "",
     status: "pending",
+    educationLevel: [],
+    availableDays: [],
+    workshopDescription: "",
   });
 
   useEffect(() => {
@@ -122,6 +128,16 @@ export default function RequestForm() {
     setFormData((prev) => ({ ...prev, schoolId: value }));
   };
 
+  const handleCheckboxChange = (field: 'educationLevel' | 'availableDays', value: string) => {
+    setFormData((prev) => {
+      const currentValues = prev[field];
+      const newValues = currentValues.includes(value)
+        ? currentValues.filter((v) => v !== value)
+        : [...currentValues, value];
+      return { ...prev, [field]: newValues };
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -164,6 +180,9 @@ export default function RequestForm() {
         startTime: formData.startTime,
         endTime: formData.endTime,
         status: formData.status,
+        educationLevel: formData.educationLevel,
+        availableDays: formData.availableDays,
+        workshopDescription: formData.workshopDescription,
       };
 
       await WorkshopRequestService.createRequest(
@@ -332,6 +351,22 @@ export default function RequestForm() {
                     )}
 
                     <div className="grid gap-2">
+                      <Label htmlFor="workshopDescription">
+                        Descrição da Oficina
+                      </Label>
+                      <Textarea
+                        id="workshopDescription"
+                        value={formData.workshopDescription}
+                        onChange={handleInputChange}
+                        placeholder="Descreva brevemente a situação da escola e o contexto da oficina desejada"
+                        className="border-iftm-green/50 focus-visible:ring-iftm-green min-h-[100px]"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Forneça informações relevantes sobre a situação da escola e o contexto em que a oficina será realizada
+                      </p>
+                    </div>
+
+                    <div className="grid gap-2">
                       <Label htmlFor="materials">
                         Materiais Disponíveis na Escola
                       </Label>
@@ -343,6 +378,71 @@ export default function RequestForm() {
                         required
                         className="border-iftm-green/50 focus-visible:ring-iftm-green"
                       />
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label>Tipo de Ensino</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="fundamental"
+                            checked={formData.educationLevel.includes('fundamental')}
+                            onChange={() => handleCheckboxChange('educationLevel', 'fundamental')}
+                            className="h-4 w-4 rounded border-gray-300 text-iftm-green focus:ring-iftm-green"
+                          />
+                          <Label htmlFor="fundamental" className="text-sm font-normal">
+                            Ensino Fundamental
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="medio"
+                            checked={formData.educationLevel.includes('medio')}
+                            onChange={() => handleCheckboxChange('educationLevel', 'medio')}
+                            className="h-4 w-4 rounded border-gray-300 text-iftm-green focus:ring-iftm-green"
+                          />
+                          <Label htmlFor="medio" className="text-sm font-normal">
+                            Ensino Médio
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="superior"
+                            checked={formData.educationLevel.includes('superior')}
+                            onChange={() => handleCheckboxChange('educationLevel', 'superior')}
+                            className="h-4 w-4 rounded border-gray-300 text-iftm-green focus:ring-iftm-green"
+                          />
+                          <Label htmlFor="superior" className="text-sm font-normal">
+                            Ensino Superior
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label>Dias Disponíveis</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        {['segunda', 'terca', 'quarta', 'quinta', 'sexta'].map((day) => (
+                          <div key={day} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={day}
+                              checked={formData.availableDays.includes(day)}
+                              onChange={() => handleCheckboxChange('availableDays', day)}
+                              className="h-4 w-4 rounded border-gray-300 text-iftm-green focus:ring-iftm-green"
+                            />
+                            <Label htmlFor={day} className="text-sm font-normal capitalize">
+                              {day === 'segunda' ? 'Segunda' :
+                               day === 'terca' ? 'Terça' :
+                               day === 'quarta' ? 'Quarta' :
+                               day === 'quinta' ? 'Quinta' : 'Sexta'}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="grid gap-2">
