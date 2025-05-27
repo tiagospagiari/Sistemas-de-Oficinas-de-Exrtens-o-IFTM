@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.office365.com',
+  port: 587,
+  secure: false,
   auth: {
-    user: 'oficinasextensaoiftm@gmail.com',
-    pass: 'rzdb ioyh hwpc pmcg'
+    user: 'extensao.upt@iftm.edu.br',
+    pass: process.env.EMAIL_PASSWORD
   }
 });
 
@@ -15,7 +17,7 @@ export async function POST(request: Request) {
     const { to, subject, html } = data;
 
     const mailOptions = {
-      from: 'oficinasextensaoiftm@gmail.com',
+      from: 'extensao.upt@iftm.edu.br',
       to,
       subject,
       html
