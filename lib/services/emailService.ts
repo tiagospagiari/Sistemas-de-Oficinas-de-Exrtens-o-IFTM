@@ -25,7 +25,7 @@ export class EmailService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          to: 'tiagospagiari@gmail.com',
+          to: 'extensao.upt@iftm.edu.br',
           subject: `Nova Solicitação de Oficina - ${request.schoolName}`,
           html: `
             <h2>Nova Solicitação de Oficina</h2>
@@ -87,7 +87,7 @@ export class EmailService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          to: 'tiagospagiari@gmail.com',
+          to: 'extensao.upt@iftm.edu.br',
           subject: `Atualização de Status - Solicitação de Oficina - ${request.schoolName}`,
           html: `
             <h2>Atualização de Status da Solicitação</h2>
